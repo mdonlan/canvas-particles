@@ -8,5 +8,30 @@
       <canvas class="canvas" width="500" height="500"></canvas>
       <div class="fpsCounter"></div>
     </div>
+
+    <div class="controlPanel">
+      <div class="particleSpeedContainer controlPanelItem">
+        <div class="flexRow">
+          <div>Particle Speed:</div>
+          <div class="particleSpeed"></div>
+        </div>
+        <div class="flexRow">
+          <div class="increaseParticleSpeed button" onclick="changedUI(event)">+</div>
+          <div class="decreaseParticleSpeed button" onclick="changedUI(event)">-</div>
+        </div>
+      </div>
+
+      <div class="connectionDistanceContainer controlPanelItem">
+          <div class="flexRow">
+            <div>Connection Distance:</div>
+            <div class="connectionDistance"></div>
+          </div>
+          <div class="flexRow">
+            <div class="increaseConnectionDistance button" onclick="changedUI(event)">+</div>
+            <div class="decreaseConnectionDistance button" onclick="changedUI(event)">-</div>
+          </div>
+        </div>
+    </div>
+    
   </body>
 </html>
