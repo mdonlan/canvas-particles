@@ -6,6 +6,12 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .wrapper {
@@ -28,26 +34,24 @@ html, body {
   position: absolute;
   height: 800px;
   width: 300px;
-  left: 20px;
-  top: calc(50% - 400px);
-  background: rebeccapurple;
+  left: 0px;
+  top: 0px;
+  transform: translate(20px, 50px);
+  background: rgba(51, 51, 51, 0.9);
   display: flex;
   flex-direction: column;
+  color: #dddddd;
 }
 
 .button {
   height: 20px;
   width: 20px;
-  background: palegreen;
+  background: rgb(44, 76, 223);
   margin-left: 5px;
   margin-right: 5px;
   line-height: 20px;
   text-align: center;
   cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }
 
 .controlPanelItem {
@@ -64,4 +68,14 @@ html, body {
 
 .flexRow {
   display: flex;
+}
+
+.header {
+  height: 30px;
+  width: 100%;
+  cursor: move;
+}
+
+input {
+  width: 50px;
 }

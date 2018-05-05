@@ -10,6 +10,21 @@
     </div>
 
     <div class="controlPanel">
+
+      <div class="header"></div>
+
+      <div class="numParticlesContainer controlPanelItem">
+        <div class="flexRow">
+          <div>Number of Particles:</div>
+          <div class="numParticles"></div>
+        </div>
+        <div class="flexRow">
+          <div class="increaseNumParticles button" onclick="changedUI(event)">+</div>
+          <input class="numParticlesInput" value="5">
+          <div class="decreaseNumParticles button" onclick="changedUI(event)">-</div>
+        </div>
+      </div>
+
       <div class="particleSpeedContainer controlPanelItem">
         <div class="flexRow">
           <div>Particle Speed:</div>
@@ -17,20 +32,23 @@
         </div>
         <div class="flexRow">
           <div class="increaseParticleSpeed button" onclick="changedUI(event)">+</div>
+          <input class="particleSpeedInput" value="5">
           <div class="decreaseParticleSpeed button" onclick="changedUI(event)">-</div>
         </div>
       </div>
 
       <div class="connectionDistanceContainer controlPanelItem">
-          <div class="flexRow">
-            <div>Connection Distance:</div>
-            <div class="connectionDistance"></div>
-          </div>
-          <div class="flexRow">
-            <div class="increaseConnectionDistance button" onclick="changedUI(event)">+</div>
-            <div class="decreaseConnectionDistance button" onclick="changedUI(event)">-</div>
-          </div>
+        <div class="flexRow">
+          <div>Connection Distance:</div>
+          <div class="connectionDistance"></div>
         </div>
+        <div class="flexRow">
+          <div class="increaseConnectionDistance button" onclick="changedUI(event)">+</div>
+          <input class="connectionDistanceInput" value="25">
+          <div class="decreaseConnectionDistance button" onclick="changedUI(event)">-</div>
+        </div>
+      </div>
+
     </div>
     
   </body>
