@@ -7,20 +7,28 @@ canvas.height = window.innerHeight;
 let ctx = canvas.getContext('2d');
 let canvasHeight = canvas.height;
 let canvasWidth = canvas.width;
-let pointRadius = 3;
 let frames = 0;
-let particleSpeed = 3;
+let totalFrames = 0;
+let particleSpeed = 5;
 let oldParticleSpeed = null;
 let startTime = null;
 let endTime = null;
-let connectionDistance = 100;
+let connectionDistance = 225;
 let oldConnectionDistance = null;
-let numParticles = 20;
+let numParticles = 150;
 let oldNumParticles = null;
 let draggingControlPanel = false;
+let draggingOpacitySlider = false;
 let mouseIsDown = 0;
 let moveX = null;
 let moveY = null;
+let mousePos = null;
+let mouseRadius = 100;
+let maxConnections = 2;
+let oldMaxConnections = null;
+let frameInterval = 2;
+let mouseOffset = null;
+let mouseIsOverControlPanel = false;
 
 // set element refs
 let fpsCounter = document.querySelector(".fpsCounter");
@@ -31,6 +39,11 @@ let controlPanelElem = document.querySelector(".controlPanel");
 let numParticlesInput = document.querySelector(".numParticlesInput");
 let particleSpeedInput = document.querySelector(".particleSpeedInput");
 let connectionDistanceInput = document.querySelector(".connectionDistanceInput");
+let maxConnectionsInput = document.querySelector(".maxConnectionsInput");
+let maxConnectionsElem = document.querySelector(".maxConnections");
+let controlPanelOpacitySlider = document.querySelector(".controlPanelOpacitySlider");
+let controlPanelOpacityContainer = document.querySelector(".controlPanelOpacityContainer");
+let controlPanelOpacityLine = document.querySelector(".controlPanelOpacityLine");
 
 // event listeners
 document.querySelector(".header").addEventListener("click", moveControlPanel);
@@ -42,108 +55,302 @@ function mouseUp() {
   --mouseIsDown;
   //console.log('mouse up')
   draggingControlPanel = false;
-}
+  draggingOpacitySlider = false;
+};
 
 function mouseDown(event) {
-  if(event.target.classList[0] == 'header') {
+  if(event.target.classList[0] == 'headerLeft') {
     draggingControlPanel = true;
+    let elemRect = controlPanelElem.getBoundingClientRect();
+    // get offset based on where on element user clicked
+
+    let mousePosOnDown = {x: event.clientX, y: event.clientY};
+    let xOffset = Math.abs(mousePosOnDown.x - elemRect.x);
+    let yOffset = Math.abs(mousePosOnDown.y - elemRect.y);
+    mouseOffset = {x: xOffset, y: yOffset};
+  } else if(event.target.classList[0] == 'controlPanelOpacitySlider') {
+    draggingOpacitySlider = true;
   }
   ++mouseIsDown;
   //console.log('mouse down')
   
-}
+};
 
 function movedMouse(event) {
-  //console.log(event)
-  if(mouseIsDown == 1 && draggingControlPanel == true) {
-    //console.log('dragging')
-    let transform = controlPanelElem.style.transform;
-    let transformX = transform.substring(transform.indexOf("(")+1,transform.indexOf("p"));
-    let transformY = transform.substring(transform.indexOf(", ")+1,transform.lastIndexOf("p"));
-    mouseX = event.clientX;
-    console.log(mouseX)
-    mouseY = event.clientY;
-    requestAnimationFrame(updateMoved)
+  mousePos = {x: event.clientX, y: event.clientY};
+
+  // check if over control panel
+  // and if so then don't render mouse radius arc
+  let elemRect = controlPanelElem.getBoundingClientRect();
+  if(mousePos.x > elemRect.x && 
+    mousePos.x < elemRect.x + elemRect.width &&
+    mousePos.y > elemRect.y &&
+    mousePos.y < elemRect.y + elemRect.height
+  ) {
+    // mouse is over the control panel
+    mouseIsOverControlPanel = true;
+  } else {
+    // mouse is not over control panel
+    mouseIsOverControlPanel = false;
   }
-}
+
+  // if dragging
+  if(mouseIsDown == 1) {
+    if(draggingControlPanel) {
+      // is dragging control panel
+      updateMoved();
+    } else if(draggingOpacitySlider) {
+      // is dragging opacity slider
+      updateOpacitySlider();
+    }
+  }
+};
+
+function updateOpacitySlider() {
+  // update control panel opacity
+  // set opacity by getting percentage left the slider element is
+
+  let elemRect = controlPanelOpacityLine.getBoundingClientRect();
+  let sliderPos = Math.abs(elemRect.left - mousePos.x);
+  let sliderPercent = sliderPos / elemRect.width;
+  
+  // only update slider if valid position and if mouse is over the opacity line element
+  if(mousePos.x > elemRect.x && 
+    mousePos.x < elemRect.x + elemRect.width &&
+    mousePos.y > elemRect.y - 10 &&
+    mousePos.y < elemRect.y + elemRect.height + 10
+  ) {
+    // mouse is over the control panel opacity container element
+    controlPanelOpacitySlider.style.left = sliderPos + 'px';
+    
+    if(sliderPos < 10) {
+      // fixes issue where adding a sliderPos of 1 had same effect as adding 10 beacuse we prefix w/ .
+      sliderPos = '0' + sliderPos;
+    }
+    // set new opacity
+    controlPanelElem.style.backgroundColor = 'rgba(51, 51, 51, .' + sliderPos + ')';
+  }
+};
+
+function updateMouseRadius() {
+  // draw mouse radius
+  ctx.beginPath();
+  ctx.arc(mousePos.x, mousePos.y, mouseRadius, 0, 2*Math.PI);
+  ctx.strokeStyle = "rgba(236, 238, 225, 0.3)";
+  
+  ctx.stroke();
+  ctx.closePath();
+  
+};
 
 function updateMoved() {
-  //console.log(mouseX, mouseY)
-  //console.log(controlPanelElem.style.transform)
-  controlPanelElem.style.transform = "translate(" + mouseX + "px, " + mouseY + "px)";
-}
+  console.log(mousePos.y)
+  //controlPanelElem.style.transform = "translate(" + (mousePos.x + xOffset) + "px, " + (mousePos.y - yOffset) + "px)";
+  let elemRect = controlPanelElem.getBoundingClientRect();
+  controlPanelElem.style.left = mousePos.x - mouseOffset.x;
+  controlPanelElem.style.top = mousePos.y - mouseOffset.y;
+  
+  //console.log(mousePos.y)
+  //console.log(controlPanelElem.style.top)
+  //console.log(elemRect)
+};
 
 function moveControlPanel() {
   //console.log('test')
   //draggingControlPanel = true;
-}
+};
 
 function createParticle() {
   let x = Math.floor(Math.random() * canvasWidth) + 1;
   let y = Math.floor(Math.random() * canvasHeight) + 1;
-  let velX = ((Math.floor(Math.random() * 10) - 5) / 50);
-  let velY = ((Math.floor(Math.random() * 10) - 5) / 50);
+  // velocity is between 1 and -1
+  let velX = ((Math.floor(Math.random() * 10) + 2) / 50);
+  let velY = ((Math.floor(Math.random() * 10) + 2) / 50);
+
+  let xIsPositive = Math.random() >= 0.5;
+  let yIsPositive = Math.random() >= 0.5;
+
+  if(xIsPositive) {
+    velX = velX * -1;
+  }
+
+  if(yIsPositive) {
+    velY = velY * -1;
+  }
+
+  // set rand color
   let color = "#000000".replace(/0/g,function(){return (~~(Math.random()*16)).toString(16);});
+  // set rand size
+  let radius = Math.floor(Math.random() * 3) + 1;
 
   let point = {
     x: x,
     y: y,
     velX: velX,
     velY: velY,
-    color: color
+    color: color,
+    radius: radius,
+    inMouseRadius: false,
+    numConnections: 0,
   }
   
   particles.push(point);
 };
 
 function movePoint(point) {
-  point.x+=point.velX * particleSpeed;
-  point.y+=point.velY * particleSpeed;
+
+  if(point.inMouseRadius) {
+    // if the point is inside the mouse radius then accelerate 
+    // its movement speed to get it out of radius
+    point.x += point.velX * particleSpeed * 3;
+    point.y += point.velY * particleSpeed * 3;
+  } else {
+    // if point is outside mouse radius move at normal speed
+    point.x += point.velX * particleSpeed;
+    point.y += point.velY * particleSpeed;
+  }
 
   // check if new location will be inside canvas
   checkIfValidPosition(point)
-}
+};
 
-function checkIfValidPosition(point) {
-  if(point.x - pointRadius <= 0 || point.x + pointRadius >= canvas.width) {
+function checkIfValidPosition(point) {``
+  // if new location is not valid, ie against or pass a border
+  // then revese the velocity of that axis
+  // this gives the visual of it bouncing off the wall
+  if(point.x - point.radius <= 0 || point.x + point.radius >= canvas.width) {
     point.velX = -point.velX;
   }
 
-  if(point.y - pointRadius <= 0 || point.y + pointRadius >= canvas.height) {
+  if(point.y - point.radius <= 0 || point.y + point.radius >= canvas.height) {
     point.velY = -point.velY;
   }
-}
+};
 
 function drawPoint(point) {
-  ctx.beginPath();
-  ctx.arc(point.x, point.y, pointRadius, 0, 2*Math.PI);
+  
+  ctx.arc(point.x, point.y, point.radius, 0, 2*Math.PI);
   ctx.fillStyle = point.color;
   ctx.strokeStyle = point.color;
-  ctx.fill();
-  ctx.stroke();
-  ctx.closePath();
-}
+
+};
 
 function update() {
+  totalFrames++;
+
   if(startTime == null) {
     // if no start time create one
     startTime = Date.now();
   }
 
   // clear canvas of all previous particles
-  clear();
+  // only clear every x frames
+  if(totalFrames % frameInterval == 0){
+    // every 2 frames
+    clear();
+  }
+  
+
+
   for(var i = 0; i < particles.length; i++) {
     // run for each point
+      
+    let closeToMouse = checkDistToMouse(particles[i]);
+
+    if(closeToMouse) {
+      moveAwayFromMouse(particles[i]);
+    } else {
+      
+    }
+
     movePoint(particles[i]);
+    
+    // begin point draw path
+    // we set all the line positions and then draw at end for efficiency
+    ctx.beginPath();
     drawPoint(particles[i]);
-    findConnections(particles[i]);
-    updateUI();
+    // end path and draw the lines and fill
+    ctx.fill();
+    ctx.stroke();
+    //ctx.closePath();
+
+    // only draw connections every x frames
+    // must keep this value in line w/ clear or else it will stutter
+    if(totalFrames % frameInterval == 0){
+      // every 2 frames
+      findConnections(particles[i], i);
+    }
   }
+
+  updateUI();
+
+  // update mouse radius view
+  // only run if mouse has moved and its position has been set
+  if(mousePos) {
+    // dont display mouse radius arc if mouse is over control pannel of if dragging control pannel
+    if(!mouseIsOverControlPanel && !draggingControlPanel) {
+      updateMouseRadius();
+    } 
+  }
+
   getFPS();
   window.requestAnimationFrame(update);
 };
 
+function moveAwayFromMouse(particle) {
+  // particle is too close to the mousePos
+  // change particle direction to 'bounce' off mouse radius
+
+  if(mousePos.x > particle.x) {
+    // mouse is to right of particle, need to move particle left to move away from mouse
+    
+    // if particle is close to mouse on its right side and its velocity is still moving it right
+    // then flip its horizontal velocity
+    if(particle.velX >= 0) {
+      particle.velX = -particle.velX;
+    }
+  } else {
+    // need to move right
+    if(particle.velX <= 0) {
+      particle.velX = -particle.velX;
+    }
+  }
+
+  if(mousePos.y > particle.y) {
+    // need to move up
+    if(particle.velY >= 0) {
+      particle.velY = -particle.velY;
+    }
+  } else {
+    // need to move down
+    if(particle.velY <= 0) {
+      particle.velY = -particle.velY;
+    }
+  }
+
+  // check if valid position
+
+};
+
+function checkDistToMouse(particle) {
+  // check how far point is from mouse and if too close then move away from mouse
+  if(mousePos) {
+    let distance = Math.hypot(mousePos.x - particle.x, mousePos.y - particle.y);
+    if(distance < mouseRadius) {
+      particle.inMouseRadius = true;
+      return true
+    } else {
+      particle.inMouseRadius = false;
+      return false
+    }
+  } else {
+    particle.inMouseRadius = false;
+    return false
+  }
+};
+
 function changedUI(event) {
+  console.log('clicked button: ' + event.target.classList[0]);
   // responds to user clicks that change UI data
 
   //numParticlesInput
@@ -152,7 +359,7 @@ function changedUI(event) {
 
   // number of particles
   if(event.target.classList[0] == 'increaseNumParticles') {
-    console.log('increasing connection dist')
+    console.log('increasing connection dist');
 
     let numChange = parseInt(numParticlesInput.value);
     numParticles = numParticles + numChange;
@@ -160,7 +367,7 @@ function changedUI(event) {
       changeNumberParticles('add');
     }
   } else if(event.target.classList[0] == 'decreaseNumParticles') {
-    console.log('decreasing connection dist')
+    console.log('decreasing connection dist');
 
     let numChange = parseInt(numParticlesInput.value);
     numParticles = numParticles - numChange;
@@ -181,16 +388,30 @@ function changedUI(event) {
 
   // connection distance
   if(event.target.classList[0] == 'increaseConnectionDistance') {
-    console.log('increasing connection dist')
+    console.log('increasing connection dist');
     let numChange = parseInt(connectionDistanceInput.value);
     connectionDistance = connectionDistance + numChange;
   } else if(event.target.classList[0] == 'decreaseConnectionDistance') {
-    console.log('decreasing connection dist')
+    console.log('decreasing connection dist');
     let numChange = parseInt(connectionDistanceInput.value);
     connectionDistance = connectionDistance - numChange;
   } 
 
-}
+  // max connections
+  if(event.target.classList[0] == 'increaseMaxConnections') {
+    console.log('increasing max connections');
+    let numChange = parseInt(maxConnectionsInput.value);
+    maxConnections = maxConnections + numChange;
+  } else if(event.target.classList[0] == 'decreaseMaxConnections') {
+    console.log('decreasing max connections');
+
+    // prevent negative 
+    let numChange = parseInt(maxConnectionsInput.value);
+    if(maxConnections - numChange >= 0) {
+      maxConnections = maxConnections - numChange;
+    }
+  } 
+};
 
 function updateUI() {
   // runs in update, detects and changes to 
@@ -201,7 +422,7 @@ function updateUI() {
     // if particle speed setting has changed
     particleSpeedElem.innerHTML = particleSpeed;
     oldParticleSpeed = particleSpeed;
-    console.log('updating particle speed')
+    console.log('updating particle speed');
   }
 
   // connection distance
@@ -209,7 +430,7 @@ function updateUI() {
     // if particle speed setting has changed
     connectionDistanceElem.innerHTML = connectionDistance;
     oldConnectionDistance = connectionDistance;
-    console.log('updating connection distance speed')
+    console.log('updating connection distance speed');
   }
 
   // number of particles
@@ -217,7 +438,15 @@ function updateUI() {
     // if particle speed setting has changed
     numParticlesElem.innerHTML = numParticles;
     oldNumParticles = numParticles;
-    console.log('updating number of particles')
+    console.log('updating number of particles');
+  }
+
+  // max connections
+  if(oldMaxConnections != maxConnections) {
+    // if particle speed setting has changed
+    maxConnectionsElem.innerHTML = maxConnections;
+    oldMaxConnections = maxConnections;
+    console.log('updating number of max connections');
   }
 };
 
@@ -229,7 +458,7 @@ function changeNumberParticles(event) {
     // remove a particle from the array
     particles.splice(particles.length-1, 1);
   }
-}
+};
 
 function getFPS() {
   // request animation frame tries to sync w/ monitor refresh rate
@@ -260,19 +489,28 @@ function start() {
 
 function clear() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
+};
 
-function findConnections(point) {
-  for(var i = 0; i < particles.length; i++) {
-    let distance = Math.hypot(point.x - particles[i].x, point.y - particles[i].y);
-    if(distance < connectionDistance && particles[i] != point) {
-      if(particles[i] === point) {
-        console.log('testing')
+function findConnections(point, index) {
+  // pass the i / index from calling function
+  // then set this counter to start at that point
+  // this will cause current point to only check points larger than it
+  // which reduces unnessesary checks b/c lower points
+  // have already been checked against this point
+
+  // reset num connections each frame
+  point.numConnections = 0;
+
+  for(let i = index; i < particles.length; i++) {
+    if(particles[i] != point) {
+      let distance = Math.hypot(point.x - particles[i].x, point.y - particles[i].y);
+      if(distance < connectionDistance && point.numConnections < maxConnections) {
+        drawLine(point, particles[i]);
+        point.numConnections = point.numConnections + 1;
       }
-      drawLine(point, particles[i])
     }
   }
-}
+};
 
 function drawLine(point1, point2) {
   // linear gradient from start to end of line
@@ -285,6 +523,6 @@ function drawLine(point1, point2) {
   ctx.lineTo(point2.x, point2.y);
   ctx.stroke();
   ctx.closePath();
-}
+};
 
 start();

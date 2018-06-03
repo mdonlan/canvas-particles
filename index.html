@@ -1,6 +1,7 @@
 <html>
   <head>
     <script src="main.js" defer> </script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
@@ -11,14 +12,20 @@
 
     <div class="controlPanel">
 
-      <div class="header"></div>
+      <div class="header">
+        <div class="headerLeft"></div>
+        <div class="controlPanelOpacityContainer">
+          <div class="controlPanelOpacitySlider"></div>
+          <div class="controlPanelOpacityLine"></div>
+        </div>
+      </div>
 
       <div class="numParticlesContainer controlPanelItem">
-        <div class="flexRow">
-          <div>Number of Particles:</div>
-          <div class="numParticles"></div>
+        <div class="flexRow left">
+          <div class="leftSideText">Number of Particles:</div>
+          <div class="numParticles mainText"></div>
         </div>
-        <div class="flexRow">
+        <div class="flexRow right">
           <div class="increaseNumParticles button" onclick="changedUI(event)">+</div>
           <input class="numParticlesInput" value="5">
           <div class="decreaseNumParticles button" onclick="changedUI(event)">-</div>
@@ -26,11 +33,11 @@
       </div>
 
       <div class="particleSpeedContainer controlPanelItem">
-        <div class="flexRow">
-          <div>Particle Speed:</div>
-          <div class="particleSpeed"></div>
+        <div class="flexRow left">
+          <div class="leftSideText">Particle Speed:</div>
+          <div class="particleSpeed mainText"></div>
         </div>
-        <div class="flexRow">
+        <div class="flexRow right">
           <div class="increaseParticleSpeed button" onclick="changedUI(event)">+</div>
           <input class="particleSpeedInput" value="5">
           <div class="decreaseParticleSpeed button" onclick="changedUI(event)">-</div>
@@ -38,14 +45,26 @@
       </div>
 
       <div class="connectionDistanceContainer controlPanelItem">
-        <div class="flexRow">
-          <div>Connection Distance:</div>
-          <div class="connectionDistance"></div>
+        <div class="flexRow left">
+          <div class="leftSideText">Connection Distance:</div>
+          <div class="connectionDistance mainText"></div>
         </div>
-        <div class="flexRow">
+        <div class="flexRow right">
           <div class="increaseConnectionDistance button" onclick="changedUI(event)">+</div>
           <input class="connectionDistanceInput" value="25">
           <div class="decreaseConnectionDistance button" onclick="changedUI(event)">-</div>
+        </div>
+      </div>
+
+      <div class="maxConnectionsContainer controlPanelItem">
+        <div class="flexRow left">
+          <div class="leftSideText">Max Connections:</div>
+          <div class="maxConnections mainText"></div>
+        </div>
+        <div class="flexRow right">
+          <div class="increaseMaxConnections button" onclick="changedUI(event)">+</div>
+          <input class="maxConnectionsInput" value="1">
+          <div class="decreaseMaxConnections button" onclick="changedUI(event)">-</div>
         </div>
       </div>
 
