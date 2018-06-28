@@ -15,7 +15,7 @@ let startTime = null;
 let endTime = null;
 let connectionDistance = 225;
 let oldConnectionDistance = null;
-let numParticles = 150;
+let numParticles = 75;
 let oldNumParticles = null;
 let draggingControlPanel = false;
 let draggingOpacitySlider = false;
@@ -24,12 +24,12 @@ let moveX = null;
 let moveY = null;
 let mousePos = null;
 let mouseRadius = 200;
-let maxConnections = 2;
+let maxConnections = numParticles;
 let oldMaxConnections = null;
 let frameInterval = 1;
 let mouseOffset = null;
 let mouseIsOverControlPanel = false;
-let moveSpeedInRadius = 30;
+let moveSpeedInRadius = 50;
 
 // set element refs
 let fpsCounter = document.querySelector(".fpsCounter");
@@ -199,7 +199,7 @@ function updateMouseRadius() {
   // draw mouse radius
   ctx.beginPath();
   ctx.arc(mousePos.x, mousePos.y, mouseRadius, 0, 2*Math.PI);
-  ctx.strokeStyle = "rgba(236, 238, 225, 0.3)";
+  ctx.strokeStyle = "rgba(236, 238, 225, 0.1)";
   
   ctx.stroke();
   ctx.closePath();
@@ -263,12 +263,18 @@ function createParticle() {
 
 function movePoint(point) {
 
-  if(point.inMouseRadius) {
+  if(point.hitMouseBorder) {
+    // if a point has just hit a border change its velocity
+    moveAwayFromMouse(point);
+
+    point.x += point.velX * particleSpeed;
+    point.y += point.velY * particleSpeed;
+
+    point.hitMouseBorder = false;
+    point.inMouseRadius = false;
+  } else if(point.inMouseRadius) {
     // if the point is inside the mouse radius then accelerate 
     // its movement speed to get it out of radius
-    //point.x += point.velX * particleSpeed * 3;
-    //point.y += point.velY * particleSpeed * 3;
-
     if(point.moveOutOfRadiusDir == 'left') {
       point.x -= moveSpeedInRadius;
     } else if(point.moveOutOfRadiusDir == 'right') {
@@ -284,6 +290,8 @@ function movePoint(point) {
     point.x += point.velX * particleSpeed;
     point.y += point.velY * particleSpeed;
   }
+
+  
 
   // check if new location will be inside canvas
   checkIfValidPosition(point)
@@ -360,16 +368,15 @@ function checkDistToMouse(particle) {
   // check how far point is from mouse and if too close then move away from mouse
   if(mousePos) {
     let distance = Math.hypot(mousePos.x - particle.x, mousePos.y - particle.y);
+
+    if(distance < mouseRadius + 5 && distance > mouseRadius) {
+      particle.hitMouseBorder = true;
+    }
+
     if(distance < mouseRadius) {
       particle.inMouseRadius = true;
       return true
     } else {
-
-      // if not in mouseRadius check if close to hitting and set it to change dir
-      if(distance + 10 < mouseRadius) {
-
-      }
-
       particle.inMouseRadius = false;
       return false
     }
