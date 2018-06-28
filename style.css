@@ -96,24 +96,21 @@ html, body {
   width: 100%;
   background: rgba(105, 105, 105, 0.4);
   border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
+  
   position: relative;
   display: flex;
 }
 
-input {
-  width: 30px;
-  background-color : #444444; 
-  border: 0px solid;
-  outline: none;
-  color: #dddddd;
-  text-align: center;
-  font-family: 'Roboto', sans-serif;
-  font-size: 12px;
+.headerLeft {
+  width: 80%;
+  height: 100%;
+  background: #222222;
+  cursor: move;
+  border-top-right-radius: 4px;
 }
 
 .controlPanelOpacityContainer {
-  background: rebeccapurple;
+  background: #222222;
   height: 100%;
   width: 20%;
   position: absolute;
@@ -127,7 +124,7 @@ input {
 .controlPanelOpacitySlider {
   height: 10px;
   width: 10px;
-  background: red;
+  background: #e63e3e;
   border-radius: 100%;
   position: absolute;
   left: 20px;
@@ -137,12 +134,16 @@ input {
 .controlPanelOpacityLine {
   height: 1px;
   width: 100%;
-  background: blue;
+  background: #dddddd;
 }
 
-.headerLeft {
-  width: 80%;
-  height: 100%;
-  background: green;
-  cursor: move;
+input {
+  width: 30px;
+  background-color : #444444; 
+  border: 0px solid;
+  outline: none;
+  color: #dddddd;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
 }

@@ -23,12 +23,13 @@ let mouseIsDown = 0;
 let moveX = null;
 let moveY = null;
 let mousePos = null;
-let mouseRadius = 100;
+let mouseRadius = 200;
 let maxConnections = 2;
 let oldMaxConnections = null;
-let frameInterval = 2;
+let frameInterval = 1;
 let mouseOffset = null;
 let mouseIsOverControlPanel = false;
+let moveSpeedInRadius = 30;
 
 // set element refs
 let fpsCounter = document.querySelector(".fpsCounter");
@@ -50,6 +51,72 @@ document.querySelector(".header").addEventListener("click", moveControlPanel);
 document.querySelector("body").addEventListener("mousemove", movedMouse);
 document.querySelector("body").addEventListener("mouseup", mouseUp);
 document.querySelector("body").addEventListener("mousedown", mouseDown);
+
+//
+// main update loop
+// 
+
+function update() {
+  totalFrames++;
+
+  if(startTime == null) {
+    // if no start time create one
+    startTime = Date.now();
+  }
+
+  // clear canvas of all previous particles
+  // only clear every x frames
+  if(totalFrames % frameInterval == 0){
+    // every 2 frames
+    clear();
+  }
+
+  for(var i = 0; i < particles.length; i++) {
+    // run for each point
+     
+    let closeToMouse = checkDistToMouse(particles[i]);
+
+    if(closeToMouse) {
+      moveAwayFromMouse(particles[i]);
+    } else {
+      
+    }
+
+    movePoint(particles[i]);
+    
+    // begin point draw path
+    // we set all the line positions and then draw at end for efficiency
+    ctx.beginPath();
+    drawPoint(particles[i]);
+    // end path and draw the lines and fill
+    ctx.fill();
+    ctx.stroke();
+    //ctx.closePath();
+
+    // only draw connections every x frames
+    // must keep this value in line w/ clear or else it will stutter
+    if(totalFrames % frameInterval == 0){
+      // every 2 frames
+      findConnections(particles[i], i);
+    }
+  }
+
+  updateUI();
+
+  // update mouse radius view
+  // only run if mouse has moved and its position has been set
+  if(mousePos) {
+    // dont display mouse radius arc if mouse is over control pannel of if dragging control pannel
+    if(!mouseIsOverControlPanel && !draggingControlPanel) {
+      updateMouseRadius();
+    } 
+  }
+
+  getFPS();
+  window.requestAnimationFrame(update);
+};
+
+
 
 function mouseUp() {
   --mouseIsDown;
@@ -112,7 +179,7 @@ function updateOpacitySlider() {
 
   let elemRect = controlPanelOpacityLine.getBoundingClientRect();
   let sliderPos = Math.abs(elemRect.left - mousePos.x);
-  let sliderPercent = sliderPos / elemRect.width;
+  let sliderOpacityPercent = sliderPos / elemRect.width;
   
   // only update slider if valid position and if mouse is over the opacity line element
   if(mousePos.x > elemRect.x && 
@@ -122,13 +189,9 @@ function updateOpacitySlider() {
   ) {
     // mouse is over the control panel opacity container element
     controlPanelOpacitySlider.style.left = sliderPos + 'px';
-    
-    if(sliderPos < 10) {
-      // fixes issue where adding a sliderPos of 1 had same effect as adding 10 beacuse we prefix w/ .
-      sliderPos = '0' + sliderPos;
-    }
+
     // set new opacity
-    controlPanelElem.style.backgroundColor = 'rgba(51, 51, 51, .' + sliderPos + ')';
+    controlPanelElem.style.backgroundColor = 'rgba(51, 51, 51, ' + sliderOpacityPercent + ')';
   }
 };
 
@@ -192,6 +255,7 @@ function createParticle() {
     radius: radius,
     inMouseRadius: false,
     numConnections: 0,
+    moveOutOfRadiusDir: null,
   }
   
   particles.push(point);
@@ -202,8 +266,19 @@ function movePoint(point) {
   if(point.inMouseRadius) {
     // if the point is inside the mouse radius then accelerate 
     // its movement speed to get it out of radius
-    point.x += point.velX * particleSpeed * 3;
-    point.y += point.velY * particleSpeed * 3;
+    //point.x += point.velX * particleSpeed * 3;
+    //point.y += point.velY * particleSpeed * 3;
+
+    if(point.moveOutOfRadiusDir == 'left') {
+      point.x -= moveSpeedInRadius;
+    } else if(point.moveOutOfRadiusDir == 'right') {
+      point.x += moveSpeedInRadius;
+    } else if(point.moveOutOfRadiusDir == 'up') {
+      point.y -= moveSpeedInRadius;
+    } else if(point.moveOutOfRadiusDir == 'down') {
+      point.y += moveSpeedInRadius;
+    }
+    
   } else {
     // if point is outside mouse radius move at normal speed
     point.x += point.velX * particleSpeed;
@@ -235,67 +310,7 @@ function drawPoint(point) {
 
 };
 
-function update() {
-  totalFrames++;
 
-  if(startTime == null) {
-    // if no start time create one
-    startTime = Date.now();
-  }
-
-  // clear canvas of all previous particles
-  // only clear every x frames
-  if(totalFrames % frameInterval == 0){
-    // every 2 frames
-    clear();
-  }
-  
-
-
-  for(var i = 0; i < particles.length; i++) {
-    // run for each point
-      
-    let closeToMouse = checkDistToMouse(particles[i]);
-
-    if(closeToMouse) {
-      moveAwayFromMouse(particles[i]);
-    } else {
-      
-    }
-
-    movePoint(particles[i]);
-    
-    // begin point draw path
-    // we set all the line positions and then draw at end for efficiency
-    ctx.beginPath();
-    drawPoint(particles[i]);
-    // end path and draw the lines and fill
-    ctx.fill();
-    ctx.stroke();
-    //ctx.closePath();
-
-    // only draw connections every x frames
-    // must keep this value in line w/ clear or else it will stutter
-    if(totalFrames % frameInterval == 0){
-      // every 2 frames
-      findConnections(particles[i], i);
-    }
-  }
-
-  updateUI();
-
-  // update mouse radius view
-  // only run if mouse has moved and its position has been set
-  if(mousePos) {
-    // dont display mouse radius arc if mouse is over control pannel of if dragging control pannel
-    if(!mouseIsOverControlPanel && !draggingControlPanel) {
-      updateMouseRadius();
-    } 
-  }
-
-  getFPS();
-  window.requestAnimationFrame(update);
-};
 
 function moveAwayFromMouse(particle) {
   // particle is too close to the mousePos
@@ -303,7 +318,10 @@ function moveAwayFromMouse(particle) {
 
   if(mousePos.x > particle.x) {
     // mouse is to right of particle, need to move particle left to move away from mouse
-    
+
+    // move left
+    particle.moveOutOfRadiusDir = 'left';
+
     // if particle is close to mouse on its right side and its velocity is still moving it right
     // then flip its horizontal velocity
     if(particle.velX >= 0) {
@@ -311,6 +329,8 @@ function moveAwayFromMouse(particle) {
     }
   } else {
     // need to move right
+    particle.moveOutOfRadiusDir = 'right';
+
     if(particle.velX <= 0) {
       particle.velX = -particle.velX;
     }
@@ -318,11 +338,15 @@ function moveAwayFromMouse(particle) {
 
   if(mousePos.y > particle.y) {
     // need to move up
+    particle.moveOutOfRadiusDir = 'up';
+
     if(particle.velY >= 0) {
       particle.velY = -particle.velY;
     }
   } else {
     // need to move down
+    particle.moveOutOfRadiusDir = 'down';
+
     if(particle.velY <= 0) {
       particle.velY = -particle.velY;
     }
@@ -340,6 +364,12 @@ function checkDistToMouse(particle) {
       particle.inMouseRadius = true;
       return true
     } else {
+
+      // if not in mouseRadius check if close to hitting and set it to change dir
+      if(distance + 10 < mouseRadius) {
+
+      }
+
       particle.inMouseRadius = false;
       return false
     }
@@ -505,18 +535,38 @@ function findConnections(point, index) {
     if(particles[i] != point) {
       let distance = Math.hypot(point.x - particles[i].x, point.y - particles[i].y);
       if(distance < connectionDistance && point.numConnections < maxConnections) {
-        drawLine(point, particles[i]);
+        drawLine(point, particles[i], distance);
         point.numConnections = point.numConnections + 1;
       }
     }
   }
 };
 
-function drawLine(point1, point2) {
+function drawLine(point1, point2, distance) {
+
+  // set the line transparency on its length
+
+  // get the percentage of max distance that the line was
+  // convert to int and round
+  // convert to base 16 string ( which is what hex color values use for alpha )
+  let percentOfMaxDist = (connectionDistance - distance) / 250;
+  let intergerPercent = Math.floor((percentOfMaxDist * 255));
+  
+  let base16String = intergerPercent.toString(16);
+  // if the hex value is a single chracter then add a zero before it
+  // this is because the leading zeros are cut out
+  if(base16String.length == 1) {
+    base16String = '0' + base16String;
+  }
+
+  if(totalFrames % 100 == 0){
+    
+  }
+
   // linear gradient from start to end of line
   var gradient = ctx.createLinearGradient(point1.x, point1.y, point2.x, point2.y);
-  gradient.addColorStop(0, point1.color);
-  gradient.addColorStop(1, point2.color);
+  gradient.addColorStop(0, point1.color + base16String);
+  gradient.addColorStop(1, point2.color + base16String);
   ctx.strokeStyle = gradient;
   ctx.beginPath();
   ctx.moveTo(point1.x, point1.y);
