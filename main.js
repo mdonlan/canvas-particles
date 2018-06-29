@@ -23,13 +23,14 @@ let mouseIsDown = 0;
 let moveX = null;
 let moveY = null;
 let mousePos = null;
-let mouseRadius = 200;
+let mouseRadius = 50;
+let oldMouseRadius = null;
 let maxConnections = numParticles;
 let oldMaxConnections = null;
 let frameInterval = 1;
 let mouseOffset = null;
 let mouseIsOverControlPanel = false;
-let moveSpeedInRadius = 50;
+let moveSpeedInRadius = 10;
 
 // set element refs
 let fpsCounter = document.querySelector(".fpsCounter");
@@ -42,6 +43,8 @@ let particleSpeedInput = document.querySelector(".particleSpeedInput");
 let connectionDistanceInput = document.querySelector(".connectionDistanceInput");
 let maxConnectionsInput = document.querySelector(".maxConnectionsInput");
 let maxConnectionsElem = document.querySelector(".maxConnections");
+let mouseRadiusElem = document.querySelector(".mouseRadius");
+let mouseRadiusInput = document.querySelector(".mouseRadiusInput");
 let controlPanelOpacitySlider = document.querySelector(".controlPanelOpacitySlider");
 let controlPanelOpacityContainer = document.querySelector(".controlPanelOpacityContainer");
 let controlPanelOpacityLine = document.querySelector(".controlPanelOpacityLine");
@@ -448,6 +451,20 @@ function changedUI(event) {
       maxConnections = maxConnections - numChange;
     }
   } 
+
+  // mouse radius size
+  if(event.target.classList[0] == 'increaseMouseRadius') {
+    console.log('increasing mouse radius');
+    let numChange = parseInt(mouseRadiusInput.value);
+    mouseRadius = mouseRadius + numChange;
+  } else if(event.target.classList[0] == 'decreaseMouseRadius') {
+    console.log('decreasing mouse radius');
+    // prevent negative 
+    let numChange = parseInt(mouseRadiusInput.value);
+    if(mouseRadius - numChange >= 0) {
+      mouseRadius = mouseRadius - numChange;
+    }
+  } 
 };
 
 function updateUI() {
@@ -484,6 +501,14 @@ function updateUI() {
     maxConnectionsElem.innerHTML = maxConnections;
     oldMaxConnections = maxConnections;
     console.log('updating number of max connections');
+  }
+
+  // mouse radius size
+  if(oldMouseRadius != mouseRadius) {
+    // if particle speed setting has changed
+    mouseRadiusElem.innerHTML = mouseRadius;
+    oldMouseRadius = mouseRadius;
+    console.log('updating mouse radius size');
   }
 };
 
@@ -556,7 +581,7 @@ function drawLine(point1, point2, distance) {
   // get the percentage of max distance that the line was
   // convert to int and round
   // convert to base 16 string ( which is what hex color values use for alpha )
-  let percentOfMaxDist = (connectionDistance - distance) / 250;
+  let percentOfMaxDist = (connectionDistance - distance) / connectionDistance;
   let intergerPercent = Math.floor((percentOfMaxDist * 255));
   
   let base16String = intergerPercent.toString(16);
